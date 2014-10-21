@@ -15,7 +15,7 @@ namespace Engine
 
     public enum MoveResult
     {
-        None, NotKilling, Win, Loose, Draw
+        None, NotKilling, Win, Loose, Draw // loose chyba niepotrzebne
     }
     /// <summary>
     /// Klasa reprezentujaca plansze. Ona pilnuje czy ruchy sa poprawne. 
@@ -33,6 +33,14 @@ namespace Engine
         public Board()
         {
             Pones = new Pone[8, 8];
+
+            for (int i = 0; i < 8; i += 2) {
+                Pones[i, 0] = Pone.White;
+                Pones[i + 1, 1] = Pone.White;
+
+                Pones[i, 6] = Pone.Black;
+                Pones[i + 1, 7] = Pone.Black;
+            }
         }
         public Board(Pone[,] arg)
         {
@@ -61,8 +69,10 @@ namespace Engine
 
             var regex = new Regex(@"^([a-hA-H][1-8])$");
 
-            if (moves.Any(x => !regex.IsMatch(x)))
-                throw new FormatException();
+            if (moves.Any(x => !regex.IsMatch(x))) {
+                throw new FormatException(); /// trochę lipa
+            } 
+
 
             return false;
         }

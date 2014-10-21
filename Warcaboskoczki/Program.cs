@@ -18,6 +18,10 @@ namespace Warcaboskoczki
         {
             var b = new Board();
             b.ToString();
+
+            var g = new Game(b);
+
+            g.StartGame();
         }
     }
 }
