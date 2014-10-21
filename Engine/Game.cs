@@ -4,11 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Engine {
+namespace Engine
+{
 
-    public class Game {
+    public class Game
+    {
 
-        public Game() {
+        public Game()
+        {
             board = new Board();
 
             player1 = new HumanPlayer(board);
@@ -17,7 +20,8 @@ namespace Engine {
             moveHistory = new List<string>();
         }
 
-        public Game(Board board) {
+        public Game(Board board)
+        {
 
             this.board = board;
 
@@ -27,14 +31,15 @@ namespace Engine {
             moveHistory = new List<string>();
         }
 
-        public Game(Board board, Player player1, Player player2) {
+        public Game(Board board, Player player1, Player player2)
+        {
             this.board = board;
 
             this.player1 = player1;
             this.player2 = player2;
 
             moveHistory = new List<string>();
-        
+
         }
 
         public Player player1;
@@ -48,17 +53,20 @@ namespace Engine {
         /// 
         /// </summary>
         /// <returns>returns winning player</returns>
-        public Player StartGame() {
+        public Player StartGame()
+        {
 
             int turn = 0;
 
-            while (true) {
+            while (true)
+            {
 
                 var t = player1.MakeMove();
                 ++turn;
                 moveHistory.Add(turn.ToString() + "/t" + t.Item2);
 
-                if (t.Item1 == MoveResult.Win) {
+                if (t.Item1 == MoveResult.Win)
+                {
                     Console.WriteLine("Player 1 won");
 
                     return player1;
@@ -68,22 +76,21 @@ namespace Engine {
                 ++turn;
                 moveHistory.Add(turn.ToString() + "/t" + t.Item2);
 
-                if (t.Item1 == MoveResult.Win) {
+                if (t.Item1 == MoveResult.Win)
+                {
                     Console.WriteLine("Player 2 won");
-                    
+
                     return player2;
                 }
 
-                Console.WriteLine( board.ToString() );
+                Console.WriteLine(board.ToString());
             }
 
         }
 
-        public String GetHistory() {
-            String s = "";
-
-
-            return s;
+        public String GetHistory()
+        {
+            return string.Join(Environment.NewLine, moveHistory);
         }
     }
 }

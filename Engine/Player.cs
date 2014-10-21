@@ -4,19 +4,22 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Engine {
+namespace Engine
+{
 
-    public abstract class Player {
+    public abstract class Player
+    {
 
-        public Player() {
+        public Player()
+        {
 
         }
 
         public int playerID;
 
-        public Board board {get; set;}
+        public Board board { get; set; }
 
-        
+
         /// <summary>
         /// returns pair <moveResult, string move> 
         /// </summary>

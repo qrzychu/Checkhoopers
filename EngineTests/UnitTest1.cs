@@ -66,5 +66,29 @@ namespace EngineTests
             Assert.AreEqual(6, exceptionCounter);
             Assert.AreEqual(2, okCounter);
         }
+
+        [TestMethod]
+        public void DrawTest()
+        {
+            // drawTest was made public in order to be able to test
+            var pones = new Pone[8, 8];
+            pones[4, 4] = Pone.White;
+            pones[1, 7] = Pone.Black;
+
+            var board = new Board(pones);
+
+            Assert.IsTrue(board.checkDraw());
+
+            board.Pones[1, 1] = Pone.Black;
+
+            Assert.IsTrue(!board.checkDraw());
+
+            pones = new Pone[8, 8];
+            pones[4, 4] = Pone.White;
+            pones[6, 7] = Pone.Black;
+
+            board = new Board(pones);
+            Assert.IsTrue(!board.checkDraw());
+        }
     }
 }

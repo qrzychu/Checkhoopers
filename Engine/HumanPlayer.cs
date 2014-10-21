@@ -4,19 +4,24 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Engine {
+namespace Engine
+{
 
-    public class HumanPlayer : Player {
+    public class HumanPlayer : Player
+    {
 
-        public HumanPlayer() {
+        public HumanPlayer()
+        {
 
         }
 
-        public HumanPlayer(Board board) {
+        public HumanPlayer(Board board)
+        {
             this.board = board;
         }
 
-        public override Tuple<MoveResult, String> MakeMove() {
+        public override Tuple<MoveResult, String> MakeMove()
+        {
             var move = Console.ReadLine();
 
             var moveResult = board.MakeMove(move);
