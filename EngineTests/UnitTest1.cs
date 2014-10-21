@@ -18,7 +18,7 @@ namespace EngineTests
 
             var b = new Board(pones);
 
-            Assert.AreEqual("a1 d2 H8 ", b.ToString(), true, "ToStringFailed");
+            Assert.AreEqual("a1 d2 H8", b.ToString(), true, "ToStringFailed");
         }
 
         [TestMethod]

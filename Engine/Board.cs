@@ -15,17 +15,17 @@ namespace Engine
 
     public enum MoveResult
     {
-        None, NotKilling, Win, Illegal, Draw // loose chyba niepotrzebne
+        None, NotKilling, Win, Illegal, Draw
     }
     /// <summary>
-    /// Klasa reprezentujaca plansze. Ona pilnuje czy ruchy sa poprawne. 
+    /// Class representing board. It handles pone movement
     /// 
-    /// [0,0] to A1, a [7,7] to H8
+    /// [0,0] is A1, and [7,7] is H8
     /// </summary>
     public class Board
     {
         /// <summary>
-        /// Pierwszy indeks to wiersz
+        /// First index means row (letters on real board)
         /// </summary>
         public Pone[,] Pones { get; private set; }
 
@@ -60,10 +60,10 @@ namespace Engine
         }
 
         /// <summary>
-        /// Robi ruch.
+        /// Makes move.
         /// </summary>
-        /// <param name="move">Opis ruchu w formacie: a1 b2 c3 <- dwa skoki</param>
-        /// <returns>true - legalny, false - nielegalny</returns>
+        /// <param name="move">Move description in format: a1 b2 c3 <- two jumps</param>
+        /// <returns>MoveResult</returns>
         public MoveResult MakeMove(string move)
         {
             string[] moves = move.Split(' ');
@@ -72,26 +72,27 @@ namespace Engine
 
             if (moves.Any(x => !regex.IsMatch(x)) || moves.Length < 2)
             {
-                throw new FormatException(); /// trochę lipa
+                throw new FormatException(); 
             }
             moves = moves.Select(x => x.ToLower()).ToArray();
             int a = (int)'a';
             var coords = moves.Select(x => new int[2] { (int)x[0] - a, (int)x[1] - (int)'1' }).ToArray();
 
-            // 
-            if (coords.Any(x => (x[0] + x[1]) % 2 != 0) && Pones[coords[0][0], coords[0][1]] != Pone.Empty)
+            // check if it is black field and if there is pone to move
+            if (coords.Any(x => (x[0] + x[1]) % 2 != 0) || Pones[coords[0][0], coords[0][1]] == Pone.Empty)
                 return MoveResult.Illegal;
 
-            bool canKill = CanKill(Pones[coords[0][0],coords[0][1]]);
+            bool canKill = CanKill(Pones[coords[0][0], coords[0][1]]);
             bool killed = false;
             MoveResult result = MoveResult.None;
 
             for (int i = 1; i < coords.Length; i++)
             {
+                // check if target field is empty
                 if (Pones[coords[i][0], coords[i][1]] == Pone.Empty)
                 {
-
-                    if (Math.Abs(coords[i - 1][0] - coords[i - 1][1]) == 1 && Math.Abs(coords[i - 1][0] - coords[i - 1][1]) == 1)
+                    // check if pone moves just with one field
+                    if (Math.Abs(coords[i - 1][0] - coords[i][0]) == 1 && Math.Abs(coords[i - 1][1] - coords[i][1]) == 1)
                     {
                         if (moves.Length != 2)
                         {
@@ -107,13 +108,14 @@ namespace Engine
                             result = MoveResult.Draw;
                         }
                     }
+                        // else it jumps over something
                     else
                     {
                         var x = (coords[i - 1][0] + coords[i][0]) / 2;
                         var y = (coords[i - 1][1] + coords[i][1]) / 2;
                         if (Math.Abs(coords[i - 1][0] - coords[i][0]) == 2 && Math.Abs(coords[i - 1][1] - coords[i][1]) == 2 && Pones[x, y] != Pone.Empty)
                         {
-                            if(Pones[x,y] != Pones[coords[i - 1][0],coords[i - 1][1]])
+                            if (Pones[x, y] != Pones[coords[i - 1][0], coords[i - 1][1]])
                             {
                                 killed = true;
                                 Pones[x, y] = Pone.Empty;
@@ -121,9 +123,20 @@ namespace Engine
                             Pones[coords[i][0], coords[i][1]] = Pones[coords[i - 1][0], coords[i - 1][1]];
                             Pones[coords[i - 1][0], coords[i - 1][1]] = Pone.Empty;
                         }
+                            //nothing to jump over
+                        else
+                        {
+                            result = MoveResult.Illegal;
+                            break;
+                        }
                     }
-                }
 
+                }
+                else
+                {
+                    result = MoveResult.Illegal;
+                    break;
+                }
 
             }
             if (canKill && !killed)
@@ -159,9 +172,9 @@ namespace Engine
 
 
         /// <summary>
-        /// Drukuje plansze w postaci pozycji wszystkich pionkow.
+        /// Prints board as position of all pones
         /// </summary>
-        /// <returns>male litery - biale, duze litery - czarne</returns>
+        /// <returns>lowercase - white, uppercase - blacks</returns>
         public override string ToString()
         {
             string result = "";
@@ -177,7 +190,7 @@ namespace Engine
                 }
             }
 
-            return result;
+            return result.TrimEnd(' ');
         }
 
     }
