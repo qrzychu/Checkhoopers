@@ -72,7 +72,7 @@ namespace Engine
 
             if (moves.Any(x => !regex.IsMatch(x)) || moves.Length < 2)
             {
-                throw new FormatException(); 
+                throw new FormatException();
             }
             moves = moves.Select(x => x.ToLower()).ToArray();
             int a = (int)'a';
@@ -88,8 +88,8 @@ namespace Engine
 
             for (int i = 1; i < coords.Length; i++)
             {
-                // check if target field is empty
-                if (Pones[coords[i][0], coords[i][1]] == Pone.Empty)
+                // check if target field is empty and move is not back and forth
+                if (Pones[coords[i][0], coords[i][1]] == Pone.Empty && (i > 1 ? (coords[i - 2][0] != coords[i][0] && coords[i - 2][1] != coords[i - 1][1]) : true))
                 {
                     // check if pone moves just with one field
                     if (Math.Abs(coords[i - 1][0] - coords[i][0]) == 1 && Math.Abs(coords[i - 1][1] - coords[i][1]) == 1)
@@ -108,7 +108,7 @@ namespace Engine
                             result = MoveResult.Draw;
                         }
                     }
-                        // else it jumps over something
+                    // else it jumps over something
                     else
                     {
                         var x = (coords[i - 1][0] + coords[i][0]) / 2;
@@ -123,7 +123,7 @@ namespace Engine
                             Pones[coords[i][0], coords[i][1]] = Pones[coords[i - 1][0], coords[i - 1][1]];
                             Pones[coords[i - 1][0], coords[i - 1][1]] = Pone.Empty;
                         }
-                            //nothing to jump over
+                        //nothing to jump over
                         else
                         {
                             result = MoveResult.Illegal;
@@ -139,7 +139,7 @@ namespace Engine
                 }
 
             }
-            if (canKill && !killed)
+            if (canKill && !killed && result != MoveResult.Illegal)
                 return MoveResult.NotKilling;
 
             return result;
@@ -147,6 +147,15 @@ namespace Engine
 
         private bool CanKill(Pone color)
         {
+            for (int i = 0; i < 8; i++)
+            {
+                for (int j = 0; j < 8; j++)
+                {
+                    if (Pones[i, j] == color)
+                        if (GetMoves(i, j).Any(x => x.Item2 != 0))
+                            return true;
+                }
+            }
             return false;
         }
 
@@ -164,7 +173,7 @@ namespace Engine
             if (black != 1 || white != 1)
                 return false;
 
-            //       B7                            A7                              G1                              H2
+            //       B8                            A7                              G1                              H2
             if (Pones[1, 7] != Pone.Empty || Pones[0, 6] != Pone.Empty || Pones[7, 0] != Pone.Empty || Pones[1, 6] != Pone.Empty)
                 return true;
             return false;
@@ -193,5 +202,139 @@ namespace Engine
             return result.TrimEnd(' ');
         }
 
+        /// <summary>
+        /// Gets all possible move for given pone
+        /// </summary>
+        /// <param name="row"></param>
+        /// <param name="col"></param>
+        /// <returns>List of pairs of move and kill count</returns>
+        public List<Tuple<string, int>> GetMoves(int row, int col)
+        {
+            if (Pones[row, col] == Pone.Empty)
+                return null;
+
+            List<Tuple<string, int>> result = new List<Tuple<string, int>>();
+
+            if (row > 0)
+            {
+
+                if (col > 0 && Pones[row - 1, col - 1] == Pone.Empty)
+                {
+                    result.Add(new Tuple<string, int>(getCoordString(row,col)+" " + getCoordString(row -1, col-1), 0));
+                }
+                if (col < 7 && Pones[row - 1, col + 1] == Pone.Empty)
+                {
+                    result.Add(new Tuple<string, int>(getCoordString(row, col) + " " + getCoordString(row - 1, col + 1), 0));
+                }
+            }
+            if (row < 7)
+            {
+                if (col < 7 && Pones[row + 1, col + 1] == Pone.Empty)
+                {
+                    result.Add(new Tuple<string, int>(getCoordString(row, col) + " " + getCoordString(row + 1, col + 1), 0));
+                }
+                if (col > 0 && Pones[row + 1, col - 1] == Pone.Empty)
+                {
+                    result.Add(new Tuple<string, int>(getCoordString(row, col) + " " + getCoordString(row + 1, col - 1), 0));
+                }
+            }
+
+            canJump(row, col,new Tuple<string,int>(getCoordString(row,col),0), result);
+
+
+            return result;
+        }
+
+        private static string getCoordString(int row, int col)
+        {
+            int a = (int)'a';
+            return ((char)(row + a)).ToString() + (col + 1).ToString();
+        }
+
+        private void canJump(int row, int col,Tuple<string,int> prevMove, List<Tuple<string, int>> result)
+        {
+            if (prevMove.Item1.Length > 4 && prevMove.Item1.Substring(0, 2) == getCoordString(row, col) && prevMove.Item2 == 0)
+                return;
+
+            if (row > 1)
+            {
+
+                if (col > 1 && Pones[row - 2, col - 2] == Pone.Empty && Pones[row - 1, col - 1] != Pone.Empty && (prevMove.Item1.Length > 4 ? !getCoordString(row - 2, col - 2).Equals(prevMove.Item1.Substring(prevMove.Item1.Length - 5, 2)) : true))
+                {
+                    bool kill = Pones[row - 1, col - 1] != Pones[row, col];
+                    result.Add(new Tuple<string, int>(prevMove.Item1 + " " + getCoordString(row-2,col-2), prevMove.Item2 + (kill ? 1 : 0)));
+
+                    if (kill)
+                    {
+                        Pones[row - 1, col - 1] = Pone.Empty;
+                    }
+
+                    Pones[row - 2, col - 2] = Pones[row,col];
+                    Pones[row, col] = Pone.Empty;
+                    canJump(row - 2, col - 2, result.Last(), result);
+                    Pones[row, col] = Pones[row - 2, col - 2];
+                    Pones[row - 2, col - 2] = Pone.Empty;
+                    if(kill)
+                        Pones[row - 1, col - 1] = Pones[row,col] == Pone.White ? Pone.Black : Pone.White;
+                }
+                if (col < 6 && Pones[row - 2, col + 2] == Pone.Empty && Pones[row - 1, col + 1] != Pone.Empty && (prevMove.Item1.Length > 4 ? !getCoordString(row - 2, col + 2).Equals(prevMove.Item1.Substring(prevMove.Item1.Length - 5, 2)) : true))
+                {
+                    bool kill = Pones[row - 1, col + 1] != Pones[row, col];
+                     result.Add(new Tuple<string, int>(prevMove.Item1 + " " + getCoordString(row-2,col+2), prevMove.Item2 + (kill ? 1 : 0)));
+
+                    if (kill)
+                    {
+                        Pones[row - 1, col + 1] = Pone.Empty;
+                    }
+
+                    Pones[row - 2, col + 2] = Pones[row, col];
+                    Pones[row, col] = Pone.Empty;
+                    canJump(row - 2, col + 2, result.Last(), result);
+                    Pones[row, col] = Pones[row - 2, col + 2];
+                    Pones[row - 2, col + 2] = Pone.Empty;
+                    if (kill)
+                        Pones[row - 1, col + 1] = Pones[row, col] == Pone.White ? Pone.Black : Pone.White;
+                }
+            }
+            if (row < 6)
+            {
+                if (col > 1 && Pones[row + 2, col - 2] == Pone.Empty && Pones[row + 1, col - 1] != Pone.Empty && (prevMove.Item1.Length > 4 ? !getCoordString(row + 2, col - 2).Equals(prevMove.Item1.Substring(prevMove.Item1.Length - 5, 2)) : true))
+                {
+                    bool kill = Pones[row + 1, col - 1] != Pones[row, col];
+                    result.Add(new Tuple<string, int>(prevMove.Item1 + " " + getCoordString(row + 2, col - 2), prevMove.Item2 + (kill ? 1 : 0)));
+
+                    if (kill)
+                    {
+                        Pones[row + 1, col - 1] = Pone.Empty;
+                    }
+
+                    Pones[row + 2, col - 2] = Pones[row, col];
+                    Pones[row, col] = Pone.Empty;
+                    canJump(row + 2, col - 2, result.Last(), result);
+                    Pones[row, col] = Pones[row + 2, col - 2];
+                    Pones[row + 2, col - 2] = Pone.Empty;
+                    if (kill)
+                        Pones[row + 1, col - 1] = Pones[row, col] == Pone.White ? Pone.Black : Pone.White;
+                }
+                if (col < 6 && Pones[row + 2, col + 2] == Pone.Empty && Pones[row + 1, col + 1] != Pone.Empty && (prevMove.Item1.Length > 4 ? !getCoordString(row + 2, col + 2).Equals(prevMove.Item1.Substring(prevMove.Item1.Length - 5, 2)) : true))
+                {
+                    bool kill = Pones[row + 1, col + 1] != Pones[row, col];
+                    result.Add(new Tuple<string, int>(prevMove.Item1 + " " + getCoordString(row + 2, col + 2), prevMove.Item2 + (kill ? 1 : 0)));
+
+                    if (kill)
+                    {
+                        Pones[row + 1, col + 1] = Pone.Empty;
+                    }
+
+                    Pones[row + 2, col + 2] = Pones[row, col];
+                    Pones[row, col] = Pone.Empty;
+                    canJump(row + 2, col + 2, result.Last(), result);
+                    Pones[row, col] = Pones[row + 2, col + 2];
+                    Pones[row + 2, col + 2] = Pone.Empty;
+                    if (kill)
+                        Pones[row + 1, col + 1] = Pones[row, col] == Pone.White ? Pone.Black : Pone.White;
+                }
+            }
+        }
     }
 }
