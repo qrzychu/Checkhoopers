@@ -14,8 +14,8 @@ namespace Engine
         {
             board = new Board();
 
-            player1 = new HumanPlayer(board);
-            player2 = new HumanPlayer(board);
+            player1 = new HumanPlayer(board, Pone.White);
+            player2 = new HumanPlayer(board, Pone.Black);
 
             moveHistory = new List<string>();
         }
@@ -25,21 +25,21 @@ namespace Engine
 
             this.board = board;
 
-            player1 = new HumanPlayer(board);
-            player2 = new HumanPlayer(board);
+            player1 = new HumanPlayer(board, Pone.White);
+            player2 = new HumanPlayer(board, Pone.Black);
 
             moveHistory = new List<string>();
         }
 
+        bool exit = false;
+
         public Game(Board board, Player player1, Player player2)
         {
-            this.board = board;
-
             this.player1 = player1;
             this.player2 = player2;
-
+           
             moveHistory = new List<string>();
-
+            this.board = board;
         }
 
         public Player player1;
@@ -55,37 +55,79 @@ namespace Engine
         /// <returns>returns winning player</returns>
         public Player StartGame()
         {
+          
+
+           
+
 
             int turn = 0;
-
+            PrintBoard();
             while (true)
             {
+                    var moveResult = player1.MakeMove();
+                    ++turn;
+                    moveHistory.Add(turn.ToString() + "/t" + moveResult.Item2);
+                    PrintBoard();
+                    if (moveResult.Item1 == MoveResult.Win)
+                    {
+                        Console.WriteLine("Player 1 won");
 
-                var t = player1.MakeMove();
-                ++turn;
-                moveHistory.Add(turn.ToString() + "/t" + t.Item2);
+                        return player1;
+                    }
 
-                if (t.Item1 == MoveResult.Win)
-                {
-                    Console.WriteLine("Player 1 won");
+                    Console.WriteLine();
 
-                    return player1;
-                }
+                    moveResult = player2.MakeMove();
+                    ++turn;
+                    moveHistory.Add(turn.ToString() + "/t" + moveResult.Item2);
+                    PrintBoard();
+                    if (moveResult.Item1 == MoveResult.Win)
+                    {
+                        Console.WriteLine("Player 2 won");
 
-                t = player2.MakeMove();
-                ++turn;
-                moveHistory.Add(turn.ToString() + "/t" + t.Item2);
-
-                if (t.Item1 == MoveResult.Win)
-                {
-                    Console.WriteLine("Player 2 won");
-
-                    return player2;
-                }
-
-                Console.WriteLine(board.ToString());
+                        return player2;
+                    }
+                    Console.WriteLine();
             }
 
+        }
+
+        private void PrintBoard()
+        {
+            string letters = "ABCDEFGH";
+            Console.Write(" ");
+            for (int i = 1; i < 9; i++)
+            {
+                Console.Write(" {0} ", i);
+            }
+            Console.WriteLine();
+            for (int x = 0; x < 8; x++)
+            {
+                Console.Write(letters[x]);
+                for (int y = 0; y < 8; y++)
+                {
+                    switch (board.Pones[x, y])
+                    {
+                        case Pone.Empty:
+                            Console.Write(" {0} ", (x + y) % 2 == 0 ? "@" : " ");
+                            break;
+                        case Pone.Black:
+                            Console.Write(" B ");
+                            break;
+                        case Pone.White:
+                            Console.Write(" W ");
+                            break;
+                    }
+                }
+                Console.Write(letters[x]);
+                Console.WriteLine();
+            }
+            Console.Write(" ");
+            for (int i = 1; i < 9; i++)
+            {
+                Console.Write(" {0} ", i);
+            }
+            Console.WriteLine();
         }
 
         public String GetHistory()

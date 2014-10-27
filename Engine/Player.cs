@@ -9,11 +9,16 @@ namespace Engine
 
     public abstract class Player
     {
+        public Pone Color { get; protected set; }
+
+        public Player(Board board, Pone color)
+        {
+            this.board = board;
+            Color = color;
+        }
 
         public Player()
-        {
-
-        }
+        { }
 
         public int playerID;
 

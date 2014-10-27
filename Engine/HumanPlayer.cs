@@ -15,20 +15,23 @@ namespace Engine
 
         }
 
-        public HumanPlayer(Board board)
+        public HumanPlayer(Board board, Pone color) : base(board,color)
         {
-            this.board = board;
         }
 
         public override Tuple<MoveResult, String> MakeMove()
         {
-            var move = Console.ReadLine();
+            Tuple<MoveResult, string> moveResult;
+            do
+            {
+                var move = Console.ReadLine();
 
-            var moveResult = board.MakeMove(move);
+                moveResult = new Tuple<MoveResult, string>(board.MakeMove(move), move);
+                if (moveResult.Item1 == MoveResult.Illegal)
+                    Console.WriteLine("This move is illegal. Try something else");
+            } while (moveResult.Item1 == MoveResult.Illegal);
 
-            Console.WriteLine(move + "\t" + moveResult);
-
-            return Tuple.Create(MoveResult.None, move);
+            return moveResult;
         }
     }
 }

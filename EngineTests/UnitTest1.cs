@@ -36,37 +36,7 @@ namespace EngineTests
             Assert.AreNotEqual(b.Pones[0, 0], b2.Pones[0, 0]);
         }
 
-        [TestMethod]
-        public void BoardMakeMoveBadFormatTest()
-        {
-            var b = new Board();
-
-            int exceptionCounter = 0;
-            int okCounter = 0;
-
-            
-            string[] moves = { "aaa 1223","H2 q5","a0","a9","a4g","b44", //niepoprawne
-                                 "a4 B6 H7", "h7 b5 c8 a6 e4"//poprawne
-                             };
-
-            foreach (var move in moves)
-            {
-                try
-                {
-                    b.MakeMove(move);
-                    ++okCounter;
-                }
-                catch (FormatException)
-                {
-                    ++exceptionCounter;
-                } 
-            }
-                    
-            
-            Assert.AreEqual(6, exceptionCounter);
-            Assert.AreEqual(2, okCounter);
-        }
-
+   
         [TestMethod]
         public void DrawTest()
         {
