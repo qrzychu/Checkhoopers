@@ -17,6 +17,7 @@ namespace Engine
 
         public State PlayerState { get; set; }
 
+        public int MaxDepth = 5;
 
         private int openingMoveCounter = 0;
 
@@ -28,6 +29,141 @@ namespace Engine
 
         private Tuple<MoveResult, string> GoMiddleGame()
         {
+            var move = MinMax(board, Color, 0).Item2;
+            var res = board.GetCopy().MakeMove(move);
+            return new Tuple<MoveResult, string>(res, move);
+        }
+
+
+        private Tuple<int, string> MinMax(Board board, Pone player, int depth)
+        {
+            if (board.IsGameOver() != null || depth == MaxDepth)
+                return new Tuple<int, string>(Evaluate(board), null);
+
+            string bestMove = null;
+            int bestScore;
+            if (board.CurrentPlayer == player)
+                bestScore = int.MinValue;
+            else
+                bestScore = int.MaxValue;
+
+
+
+            foreach (var move in board.GetAllMoves(player))
+            {
+                var newBoard = board.SimulateMove(move.Item1);
+                var res = MinMax(newBoard, player, depth + 1);
+                if (res.Item1 > bestScore)
+                {
+                    bestScore = res.Item1;
+                    bestMove = move.Item1;
+                }
+                else
+                {
+                    if (res.Item1 < bestScore)
+                    {
+                        bestScore = res.Item1;
+                        bestMove = move.Item1;
+                    }
+                }
+            }
+
+            return new Tuple<int, string>(bestScore, bestMove);
+
+        }
+
+
+
+
+        private int Evaluate(Board board)
+        {
+            int score = 0, black = 0, white = 0, mul ;
+
+            var pones = board.Pones;
+
+
+
+            for (int row = 0; row < 8; row++)
+            {
+                for (int col = 0; col < 8; col++)
+                {
+                    if (pones[row, col] == Color)
+                    {
+                        score += 2;
+
+                        //if (row > 0)
+                        //{
+
+                        //    if (col > 0 && pones[row - 1, col - 1] != Pone.Empty)
+                        //    {
+
+                        //    }
+                        //    if (col < 7 && pones[row - 1, col + 1] != Pone.Empty)
+                        //    {
+                        //    }
+                        //}
+                        //if (row < 7)
+                        //{
+                        //    if (col < 7 && pones[row + 1, col + 1] != Pone.Empty)
+                        //    {
+                        //    }
+                        //    if (col > 0 && pones[row + 1, col - 1] != Pone.Empty)
+                        //    {
+                        //    }
+                        //}
+
+                    }
+                    else
+                        if (pones[row, col] == Color.Other())
+                        {
+                            score -= 2;
+                        }
+
+                    if (pones[row, col] == Pone.Black)
+                        ++black;
+                    if (pones[row, col] == Pone.White)
+                        ++white;
+
+
+                }
+
+            }
+
+            if(black == 0)
+            {
+                return Color == Pone.White ? int.MaxValue : int.MinValue;
+            }
+
+            if (white == 0)
+            {
+                return Color != Pone.White ? int.MaxValue : int.MinValue;
+            }
+
+            return score;
+        }
+
+        public ComputerPlayer(Pone color)
+        {
+            PlayerState = State.Opening;
+            Color = color;
+        }
+
+        public ComputerPlayer(Board board, Pone color)
+            : base(board, color)
+        {
+
+        }
+
+        /// <summary>
+        /// Computes move value. Assume that move is legal
+        /// </summary>
+        /// <param name="board"></param>
+        /// <param name="move"></param>
+        /// <returns></returns>
+        public int RateMove(Board board, string move, int depth = 0)
+        {
+            var moveResult = board.MakeMoveDetailed(move);
+
             List<int[]> myPones = new List<int[]>();
             for (int x = 0; x < 8; x++)
             {
@@ -39,37 +175,13 @@ namespace Engine
             }
 
             Dictionary<string, List<Tuple<string, int>>> possibleMoves = new Dictionary<string, List<Tuple<string, int>>>();
-            myPones.ForEach(x => possibleMoves.Add(Board.GetCoordString(x[0],x[1]), board.GetMoves(x[0], x[1])));
+            myPones.ForEach(x => possibleMoves.Add(Board.GetCoordString(x[0], x[1]), board.GetMoves(x[0], x[1])));
 
-
-            //dummy
-            return null;
-        }
-
-        public ComputerPlayer(Pone color)
-        {
-            PlayerState = State.Opening;
-            Color = color;
-        }
-
-        public ComputerPlayer(Board board, Pone color) : base(board,color)
-        {
-            
-        }
-
-        /// <summary>
-        /// Computes move value. Assume that move is legal
-        /// </summary>
-        /// <param name="board"></param>
-        /// <param name="move"></param>
-        /// <returns></returns>
-        public int RateMove(Board board, string move)
-        {
-            // dummy
+            //possibleMoves.Select(x => RateMove(board.GetCopy(), x, depth + 1)).Max();
             return 0;
         }
 
-        public override Tuple<MoveResult,string> MakeMove()
+        public override Tuple<MoveResult, string> MakeMove()
         {
             switch (PlayerState)
             {
@@ -127,19 +239,19 @@ namespace Engine
                 {
                     case 1:
                         return "h8 f6";
-                    case 2:    
+                    case 2:
                         return "h4 f2";
-                    case 3:    
+                    case 3:
                         return "h2 f4";
-                    case 4:    
+                    case 4:
                         return "h6 f8";
-                    case 5:    
+                    case 5:
                         return "g1 e3";
-                    case 6:    
+                    case 6:
                         return "g7 e5";
-                    case 7:    
+                    case 7:
                         return "g3 e1";
-                    case 8:    
+                    case 8:
                         return "g5 e7";
                     default:
                         PlayerState = State.MiddleGame;

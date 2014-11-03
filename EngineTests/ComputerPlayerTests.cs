@@ -12,7 +12,7 @@ namespace EngineTests
     [TestClass]
     public class ComputerPlayerTests
     {
-      
+        
 
         [TestMethod]
         public void OpeningTest()
@@ -21,6 +21,20 @@ namespace EngineTests
             Opening(Pone.Black);
         }
 
+        [TestMethod]
+        public void KillTest()
+        {
+            var pones = new Pone[8, 8];
+            pones[0, 0] = Pone.White;
+            pones[1, 1] = Pone.Black;
+            pones[3, 3] = Pone.Black;
+
+            var board = new Board(pones) { CurrentPlayer = Pone.White};
+
+            var ai = new ComputerPlayer(Pone.White) { board = board, PlayerState = ComputerPlayer.State.MiddleGame };
+
+            var move = ai.MakeMove();
+        }
         
         public void Opening(Pone color)
         {

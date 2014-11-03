@@ -13,6 +13,14 @@ namespace Engine
         Empty, White, Black
     }
 
+    public static class Extensions
+    {
+        public static Pone Other(this Pone arg)
+        {
+            return arg == Pone.White ? Pone.Black : Pone.White;
+        }
+    }
+
     public enum MoveResult
     {
         None, NotKilling, Win, Illegal, Draw
@@ -54,13 +62,25 @@ namespace Engine
             Pones = (Pone[,])arg.Clone();
         }
 
+        public Pone CurrentPlayer = Pone.White;
+        public bool NotKilling = false;
+
         public Board GetCopy()
         {
             return new Board(Pones);
         }
 
+
+        public Board SimulateMove(string move)
+        {
+            var result = GetCopy();
+            result.MakeMove(move);
+
+            return result;
+        }
+
         /// <summary>
-        /// Makes move.
+        ///Makes move.
         /// </summary>
         /// <param name="move">Move description in format: a1 b2 c3 <- two jumps</param>
         /// <returns>MoveResult</returns>
@@ -142,6 +162,9 @@ namespace Engine
             if (canKill && !killed && result != MoveResult.Illegal)
                 return MoveResult.NotKilling;
 
+
+            CurrentPlayer = CurrentPlayer == Pone.White ? Pone.Black : Pone.White;
+
             return result;
         }
 
@@ -176,6 +199,17 @@ namespace Engine
 
         public bool checkDraw()
         {
+            return (IsGameOver() == Pone.Empty);
+        }
+
+
+        /// <summary>
+        /// Check's game state
+        /// </summary>
+        /// <returns>Black, white - winner, empty - draw, null - nothing</returns>
+
+        public Pone? IsGameOver()
+        {
             int black = 0, white = 0;
             foreach (var pone in Pones)
             {
@@ -185,15 +219,19 @@ namespace Engine
                     ++black;
             }
 
-            if (black != 1 || white != 1)
-                return false;
+            if (black > 1 && white == 0)
+                return Pone.Black;
+
+            if (white > 1 & black == 0)
+                return Pone.White;
+
 
             //       B8                            A7                              G1                              H2
-            if (Pones[1, 7] != Pone.Empty || Pones[0, 6] != Pone.Empty || Pones[7, 0] != Pone.Empty || Pones[1, 6] != Pone.Empty)
-                return true;
-            return false;
-        }
+            if ((black == 1 && white ==1 ) && (Pones[1, 7] != Pone.Empty || Pones[0, 6] != Pone.Empty || Pones[7, 0] != Pone.Empty || Pones[1, 6] != Pone.Empty))
+                return Pone.Empty;
 
+            return null;
+        }
 
         /// <summary>
         /// Prints board as position of all pones
@@ -350,6 +388,109 @@ namespace Engine
                         Pones[row + 1, col + 1] = Pones[row, col] == Pone.White ? Pone.Black : Pone.White;
                 }
             }
+        }
+
+        public Tuple<MoveResult,int> MakeMoveDetailed(string move)
+        {
+            var illegal = new Tuple<MoveResult, int>(MoveResult.Illegal, 0);
+
+            string[] moves = move.Split(' ');
+
+            var regex = new Regex(@"^([a-hA-H][1-8])$");
+
+            if (moves.Any(x => !regex.IsMatch(x)) || moves.Length < 2)
+            {
+                return illegal;
+            }
+            moves = moves.Select(x => x.ToLower()).ToArray();
+            int a = (int)'a';
+            var coords = moves.Select(x => new int[2] { (int)x[0] - a, (int)x[1] - (int)'1' }).ToArray();
+
+            // check if it is black field and if there is pone to move
+            if (coords.Any(x => (x[0] + x[1]) % 2 != 0) || Pones[coords[0][0], coords[0][1]] == Pone.Empty)
+                return illegal;
+
+            bool canKill = CanKill(Pones[coords[0][0], coords[0][1]]);
+            MoveResult result = MoveResult.None;
+            int killCount = 0;
+
+            for (int i = 1; i < coords.Length; i++)
+            {
+                // check if target field is empty and move is not back and forth
+                if (Pones[coords[i][0], coords[i][1]] == Pone.Empty && (i > 1 ? (coords[i - 2][0] != coords[i][0] && coords[i - 2][1] != coords[i - 1][1]) : true))
+                {
+                    // check if pone moves just with one field
+                    if (Math.Abs(coords[i - 1][0] - coords[i][0]) == 1 && Math.Abs(coords[i - 1][1] - coords[i][1]) == 1)
+                    {
+                        if (moves.Length != 2)
+                        {
+                            result = MoveResult.Illegal;
+                            break;
+                        }
+
+                        Pones[coords[i][0], coords[i][1]] = Pones[coords[i - 1][0], coords[i - 1][1]];
+                        Pones[coords[i - 1][0], coords[i - 1][1]] = Pone.Empty;
+
+                        if (checkDraw())
+                        {
+                            result = MoveResult.Draw;
+                        }
+                    }
+                    // else it jumps over something
+                    else
+                    {
+                        var x = (coords[i - 1][0] + coords[i][0]) / 2;
+                        var y = (coords[i - 1][1] + coords[i][1]) / 2;
+                        if (Math.Abs(coords[i - 1][0] - coords[i][0]) == 2 && Math.Abs(coords[i - 1][1] - coords[i][1]) == 2 && Pones[x, y] != Pone.Empty)
+                        {
+                            if (Pones[x, y] != Pones[coords[i - 1][0], coords[i - 1][1]])
+                            {
+                                ++killCount;
+                                Pones[x, y] = Pone.Empty;
+                            }
+                            Pones[coords[i][0], coords[i][1]] = Pones[coords[i - 1][0], coords[i - 1][1]];
+                            Pones[coords[i - 1][0], coords[i - 1][1]] = Pone.Empty;
+                        }
+                        //nothing to jump over
+                        else
+                        {
+                            result = MoveResult.Illegal;
+                            break;
+                        }
+                    }
+
+                }
+                else
+                {
+                    result = MoveResult.Illegal;
+                    break;
+                }
+
+            }
+            if (canKill && killCount == 0 && result != MoveResult.Illegal)
+                return new Tuple<MoveResult,int>(MoveResult.NotKilling,0);
+
+            return new Tuple<MoveResult,int>(result,killCount);
+        }
+
+       
+
+        internal IEnumerable<Tuple<string, int>> GetAllMoves(Pone player)
+        {
+            List<Tuple<string, int>> result = new List<Tuple<string,int>>();
+
+            for (int i = 0; i < 8; i++)
+            {
+                for (int j = 0; j < 8; j++)
+                {
+                    if (Pones[i, j] == player)
+                    {
+                        result.AddRange(GetMoves(i, j));
+                    }
+                }
+            }
+
+            return result;
         }
     }
 }
