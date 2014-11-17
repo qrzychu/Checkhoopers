@@ -35,6 +35,32 @@ namespace EngineTests
 
             var move = ai.MakeMove();
         }
+
+        [TestMethod]
+        public void EndingTest()
+        {
+            var pones = new Pone[8, 8];
+            pones[6, 4] = Pone.Black;
+            pones[3, 5] = Pone.White;
+
+            var board = new Board(pones) { CurrentPlayer = Pone.White };
+
+            var ai = new ComputerPlayer(Pone.White) { board = board, PlayerState = ComputerPlayer.State.MiddleGame };
+
+            var move = ai.MakeMove();
+
+            board.MakeMove(move.Item2);
+            board.MakeMove("g5 h6");
+            move = ai.MakeMove();
+
+            board.MakeMove(move.Item2);
+            board.MakeMove("h6 g5");
+            move = ai.MakeMove();
+
+            board.MakeMove(move.Item2);
+
+            Assert.IsTrue(board.IsGameOver() == Pone.White);
+        }
         
         public void Opening(Pone color)
         {

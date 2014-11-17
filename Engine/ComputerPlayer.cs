@@ -37,8 +37,10 @@ namespace Engine
 
         private Tuple<int, string> MinMax(Board board, Pone player, int depth)
         {
+            var curPlayer = board.CurrentPlayer;
+
             if (board.IsGameOver() != null || depth == MaxDepth)
-                return new Tuple<int, string>(Evaluate(board), null);
+                return new Tuple<int, string>(Evaluate(board) / (depth + 1), null);
 
             string bestMove = null;
             int bestScore;
@@ -49,14 +51,17 @@ namespace Engine
 
 
 
-            foreach (var move in board.GetAllMoves(player))
+            foreach (var move in board.GetAllMoves(board.CurrentPlayer))
             {
                 var newBoard = board.SimulateMove(move.Item1);
                 var res = MinMax(newBoard, player, depth + 1);
-                if (res.Item1 > bestScore)
+                if (board.CurrentPlayer == player)
                 {
-                    bestScore = res.Item1;
-                    bestMove = move.Item1;
+                    if (res.Item1 > bestScore)
+                    {
+                        bestScore = res.Item1;
+                        bestMove = move.Item1;
+                    }
                 }
                 else
                 {
@@ -68,6 +73,7 @@ namespace Engine
                 }
             }
 
+            board.CurrentPlayer = curPlayer;
             return new Tuple<int, string>(bestScore, bestMove);
 
         }
@@ -77,7 +83,7 @@ namespace Engine
 
         private int Evaluate(Board board)
         {
-            int score = 0, black = 0, white = 0, mul ;
+            int score = 0, black = 0, white = 0, mul;
 
             var pones = board.Pones;
 
@@ -121,15 +127,16 @@ namespace Engine
 
                     if (pones[row, col] == Pone.Black)
                         ++black;
-                    if (pones[row, col] == Pone.White)
-                        ++white;
+                    else
+                        if (pones[row, col] == Pone.White)
+                            ++white;
 
 
                 }
 
             }
 
-            if(black == 0)
+            if (black == 0)
             {
                 return Color == Pone.White ? int.MaxValue : int.MinValue;
             }

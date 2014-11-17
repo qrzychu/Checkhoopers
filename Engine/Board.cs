@@ -60,6 +60,7 @@ namespace Engine
                 throw new ArgumentException("Wrong board size!");
 
             Pones = (Pone[,])arg.Clone();
+
         }
 
         public Pone CurrentPlayer = Pone.White;
@@ -67,7 +68,7 @@ namespace Engine
 
         public Board GetCopy()
         {
-            return new Board(Pones);
+            return new Board(Pones) { CurrentPlayer = CurrentPlayer };
         }
 
 
@@ -219,15 +220,15 @@ namespace Engine
                     ++black;
             }
 
-            if (black > 1 && white == 0)
+            if (black > 0 && white == 0)
                 return Pone.Black;
 
-            if (white > 1 & black == 0)
+            if (white > 0 & black == 0)
                 return Pone.White;
 
 
             //       B8                            A7                              G1                              H2
-            if ((black == 1 && white ==1 ) && (Pones[1, 7] != Pone.Empty || Pones[0, 6] != Pone.Empty || Pones[7, 0] != Pone.Empty || Pones[1, 6] != Pone.Empty))
+            if ((black == 1 && white == 1) && (Pones[1, 7] != Pone.Empty || Pones[0, 6] != Pone.Empty || Pones[7, 0] != Pone.Empty || Pones[1, 6] != Pone.Empty))
                 return Pone.Empty;
 
             return null;
@@ -390,7 +391,7 @@ namespace Engine
             }
         }
 
-        public Tuple<MoveResult,int> MakeMoveDetailed(string move)
+        public Tuple<MoveResult, int> MakeMoveDetailed(string move)
         {
             var illegal = new Tuple<MoveResult, int>(MoveResult.Illegal, 0);
 
@@ -468,16 +469,16 @@ namespace Engine
 
             }
             if (canKill && killCount == 0 && result != MoveResult.Illegal)
-                return new Tuple<MoveResult,int>(MoveResult.NotKilling,0);
+                return new Tuple<MoveResult, int>(MoveResult.NotKilling, 0);
 
-            return new Tuple<MoveResult,int>(result,killCount);
+            return new Tuple<MoveResult, int>(result, killCount);
         }
 
-       
+
 
         internal IEnumerable<Tuple<string, int>> GetAllMoves(Pone player)
         {
-            List<Tuple<string, int>> result = new List<Tuple<string,int>>();
+            List<Tuple<string, int>> result = new List<Tuple<string, int>>();
 
             for (int i = 0; i < 8; i++)
             {
