@@ -18,6 +18,7 @@ namespace Engine
             player2 = new HumanPlayer(board, Pone.Black);
 
             moveHistory = new List<string>();
+            Silent = false;
         }
 
         public Game(Board board)
@@ -29,6 +30,8 @@ namespace Engine
             player2 = new HumanPlayer(board, Pone.Black);
 
             moveHistory = new List<string>();
+            Silent = false;
+
         }
 
         bool exit = false;
@@ -37,9 +40,11 @@ namespace Engine
         {
             this.player1 = player1;
             this.player2 = player2;
-           
+
             moveHistory = new List<string>();
             this.board = board;
+            Silent = false;
+
         }
 
         public Player player1;
@@ -55,40 +60,47 @@ namespace Engine
         /// <returns>returns winning player</returns>
         public Player StartGame()
         {
-          
 
-           
+
+
 
 
             int turn = 0;
-            PrintBoard();
-            while (true)
+            if (!Silent)
+                PrintBoard();
+            while (board.IsGameOver() == null)
             {
-                    var moveResult = player1.MakeMove();
-                    ++turn;
-                    moveHistory.Add(turn.ToString() + "/t" + moveResult.Item2);
+                var moveResult = player1.MakeMove();
+                ++turn;
+                moveHistory.Add(turn.ToString() + "/t" + moveResult.Item2);
+                if (!Silent)
                     PrintBoard();
-                    if (moveResult.Item1 == MoveResult.Win)
-                    {
-                        Console.WriteLine("Player 1 won");
+                if (moveResult.Item1 == MoveResult.Win)
+                {
+                    Console.WriteLine("Player 1 won");
 
-                        return player1;
-                    }
-
+                    return player1;
+                }
+                if (!Silent)
                     Console.WriteLine();
 
-                    moveResult = player2.MakeMove();
-                    ++turn;
-                    moveHistory.Add(turn.ToString() + "/t" + moveResult.Item2);
-                    PrintBoard();
-                    if (moveResult.Item1 == MoveResult.Win)
-                    {
-                        Console.WriteLine("Player 2 won");
+                moveResult = player2.MakeMove();
 
-                        return player2;
-                    }
+                ++turn;
+                moveHistory.Add(turn.ToString() + "/t" + moveResult.Item2);
+                if (!Silent)
+                    PrintBoard();
+                if (moveResult.Item1 == MoveResult.Win)
+                {
+                    Console.WriteLine("Player 2 won");
+
+                    return player2;
+                }
+                if (!Silent)
                     Console.WriteLine();
             }
+            var res = board.IsGameOver();
+            return res == Pone.White ? player1 : (res == Pone.Black ? player2 : null);
 
         }
 
@@ -134,5 +146,7 @@ namespace Engine
         {
             return string.Join(Environment.NewLine, moveHistory);
         }
+
+        public bool Silent { get; set; }
     }
 }

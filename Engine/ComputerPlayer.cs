@@ -20,6 +20,7 @@ namespace Engine
         public int MaxDepth = 5;
 
         private int openingMoveCounter = 0;
+        private bool moveBoard;
 
 
         private Tuple<MoveResult, string> GoEnding()
@@ -50,8 +51,11 @@ namespace Engine
                 bestScore = int.MaxValue;
 
 
+            var moves = board.GetAllMoves(board.CurrentPlayer);
 
-            foreach (var move in board.GetAllMoves(board.CurrentPlayer))
+            if(moves.Any(x => x.Item2 > 0))
+                moves = moves.Where( x => x.Item2 > 0);
+            foreach (var move in moves)
             {
                 var newBoard = board.SimulateMove(move.Item1);
                 var res = MinMax(newBoard, player, depth + 1);
@@ -155,10 +159,10 @@ namespace Engine
             Color = color;
         }
 
-        public ComputerPlayer(Board board, Pone color)
+        public ComputerPlayer(Board board, Pone color, bool moveBoard)
             : base(board, color)
         {
-
+            this.moveBoard = moveBoard;
         }
 
         /// <summary>
@@ -196,12 +200,19 @@ namespace Engine
                     var move = GoOpening();
                     if (move != null && board[move.Substring(3)] == Pone.Empty)
                     {
-                        board.MakeMove(move);
+                        if(moveBoard)
+                            board.MakeMove(move);
                         return new Tuple<MoveResult, string>(MoveResult.None, move);
                     }
-                    return null;
+                    PlayerState = State.MiddleGame;
+                    goto case State.MiddleGame;
                 case State.MiddleGame:
-                    return GoMiddleGame();
+                    var middleMove =  GoMiddleGame();
+                    if (moveBoard)
+                        board.MakeMove(middleMove.Item2);
+
+                    return middleMove;
+
                 //case State.Ending:
                 //    return GoEnding();
                 default:

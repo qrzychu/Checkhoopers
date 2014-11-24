@@ -40,6 +40,7 @@ namespace Engine
 
         public Board()
         {
+            CurrentPlayer = Pone.White;
             Pones = new Pone[8, 8];
 
             for (int i = 0; i < 8; i += 2)
@@ -63,8 +64,32 @@ namespace Engine
 
         }
 
+        public Board(string arg)
+        {
+            if (arg == null)
+                throw new ArgumentNullException();
+            try
+            {
+                Pones = new Pone[8, 8];
+
+                var pones = arg.Split(' ').Where(x => !string.IsNullOrEmpty(x)).ToArray();
+                int a = (int)'a';
+                var coords = pones.Select(x => new int[2] { (int)x.ToLower()[0] - a, (int)x.ToLower()[1] - (int)'1' }).ToArray();
+                int count = 0;
+                foreach (var coord in coords)
+                {
+                    Pones[coord[0], coord[1]] = (int)(pones[count++][0]) < (int)'Z' ? Pone.Black : Pone.White;
+                }
+            }
+            catch
+            {
+                throw new ArgumentException("Incorect input string");
+            }
+        }
+
         public Pone CurrentPlayer = Pone.White;
         public bool NotKilling = false;
+
 
         public Board GetCopy()
         {

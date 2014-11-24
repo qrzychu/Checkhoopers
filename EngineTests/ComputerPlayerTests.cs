@@ -12,7 +12,7 @@ namespace EngineTests
     [TestClass]
     public class ComputerPlayerTests
     {
-        
+
 
         [TestMethod]
         public void OpeningTest()
@@ -29,11 +29,27 @@ namespace EngineTests
             pones[1, 1] = Pone.Black;
             pones[3, 3] = Pone.Black;
 
-            var board = new Board(pones) { CurrentPlayer = Pone.White};
+            var board = new Board(pones) { CurrentPlayer = Pone.White };
 
             var ai = new ComputerPlayer(Pone.White) { board = board, PlayerState = ComputerPlayer.State.MiddleGame };
 
             var move = ai.MakeMove();
+        }
+
+        [TestMethod]
+        public void KillTest2()
+        {
+            var board = new Board("G1 G3 G5 E5 C5 b4") { CurrentPlayer = Pone.Black };
+
+            var comp = new ComputerPlayer(Pone.Black) { board = board };
+
+            var move = comp.MakeMove();
+
+
+            board.MakeMove(move.Item2);
+
+            Assert.IsTrue(board.IsGameOver() == Pone.Black);
+
         }
 
         [TestMethod]
@@ -61,7 +77,7 @@ namespace EngineTests
 
             Assert.IsTrue(board.IsGameOver() == Pone.White);
         }
-        
+
         public void Opening(Pone color)
         {
             var player = new ComputerPlayer(color);
